@@ -15,8 +15,10 @@ from rest_framework import permissions
 #     # permission_classes=[permissions.AllowAny,],
 # )
 
+from bonds.views import BondsAPIView
+
 urlpatterns = [
-    path('devices/', include('bonds.urls')),
+    path('devices/', BondsAPIView.as_view()),
     path('admin/', admin.site.urls),
     # path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger')
 ]
