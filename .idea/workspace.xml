@@ -4,15 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b2fde7f2-fd0d-4d28-be07-38cd60ba5775" name="Changes" comment="models, basic views">
-      <change afterPath="$PROJECT_DIR$/django_service/bonds/serializers.py" afterDir="false" />
+    <list default="true" id="b2fde7f2-fd0d-4d28-be07-38cd60ba5775" name="Changes" comment="Django Rest Framework (1 view)">
       <change beforePath="$PROJECT_DIR$/.idea/project-app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/project-app.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/django_service/bonds/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/django_service/bonds/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/django_service/bonds/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/django_service/bonds/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/django_service/bonds/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/django_service/bonds/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/django_service/django_service/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/django_service/django_service/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/django_service/django_service/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/django_service/django_service/urls.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,9 +30,9 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="2eoEvVTwPvUZaAJtxvWyONZ1Cvj" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
@@ -45,9 +41,11 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "last_opened_file_path": "/home/vlada/PycharmProjects/django",
+    "full.screen.before.presentation.mode": "false",
+    "last_opened_file_path": "/home/vlada/PycharmProjects/project-app",
     "settings.editor.selected.configurable": "project.propVCSSupport.CommitDialog"
   }
 }]]></component>
