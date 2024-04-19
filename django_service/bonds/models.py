@@ -1,12 +1,16 @@
+import uuid
+
 from django.db import models
 
 
 class User(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40)
-    password = models.CharField(max_length=10)
-    # поменять тип
-    phone = models.CharField(max_length=10)
+    # поменять тип?
+    phone = models.CharField(max_length=10, unique=True)
+    auth_token = models.UUIDField(
+        default=uuid.uuid4, verbose_name='Токен авторизации', auto_created=True, null=False, blank=False
+    )
     devices = models.ManyToManyField('Device', related_name='users')
 
     def __str__(self):
@@ -14,7 +18,6 @@ class User(models.Model):
 
 
 class Device(models.Model):
-    # подумала, что с простым id помимо uuid будет проще, не факт
     id = models.AutoField(primary_key=True)
     uuid = models.CharField(max_length=12)
     name = models.CharField(max_length=40)
