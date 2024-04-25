@@ -9,10 +9,9 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from bonds.views import *
-from auth.views import AuthToken, LoginPageView, AuthCode
+from autho.views import AuthToken, login
 
 # from drf_yasg import openapi
-
 schema_view = get_schema_view(
     openapi.Info(
         title="Django service API",
@@ -31,10 +30,9 @@ urlpatterns = [
     path('devices/bind', BindDeviceView.as_view()),
     # path('devices/', BondsAPIView.as_view()),
     # path('devices/<int:pk>/', BondsUpdate.as_view()),
-    path('login/', LoginPageView.as_view()),
-    path('login/', LoginPageView.as_view()),
-    path('auth-send-code/', AuthCode.as_view()),
-    path('auth-get-token/', AuthToken.as_view()),
+    path('login/', login.as_view(), name='login'),
+    # path('auth-send-code/', AuthCode.as_view()),
+    path('auth-get-token/', AuthToken.as_view(), name='get_token'),
 
     path('admin/', admin.site.urls),
     path('token-verify/', TokenVerifyView.as_view(), name='token_verify'),
