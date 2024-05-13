@@ -1,5 +1,7 @@
+import base64
+
 import requests
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from rest_framework import generics, status, viewsets, mixins
 from rest_framework.response import Response
@@ -9,6 +11,7 @@ from rest_framework.exceptions import APIException
 
 from .models import Device, User
 from .serializers import DeviceSerializer
+
 
 #
 class BondsAPIView(mixins.RetrieveModelMixin,
@@ -20,20 +23,23 @@ class BondsAPIView(mixins.RetrieveModelMixin,
     queryset = Device.objects.all()
     serializer_class = DeviceSerializer
 
+    def add_device(self, request):
+        if request.method == 'GET':
+            return render(request, 'add_device.html')
+    #          redirect на отсканеный QR?
 
-# # for GET and POST
-# class BondsAPIView(generics.ListAPIView):
-#     queryset = Device.objects.all()
-#     serializer_class = DeviceSerializer
-#     # permission_classes = [IsAuthenticated]  # FOR AUTH (+ in settings)
-#
-# # CRUD
-# class BondsUpdate(generics.RetrieveUpdateDestroyAPIView):
-#     queryset = Device.objects.all()
-#     serializer_class = DeviceSerializer
+    #  сделать открытым только для конкретного юзера\
+
+    # def get_queryset(self):
+    #     # Получение пользователя из запроса
+    #     user = self.request.user
+    #     queryset = Device.objects.filter(user=user)
+    #     # Возврат только объектов для этого пользователя
+    #     return queryset
 
 
 class BindDeviceView(APIView):
+    # как здесь оказываются эти параматры?
     def get(self, request):
         serial_number = self.request.query_params.get('deviceSN')
         device_type = self.request.query_params.get('deviceType')
@@ -45,18 +51,22 @@ class BindDeviceView(APIView):
         if device_type is None:
             raise APIException(detail='GET параметер device_type обязателен')
 
-        device, _ = Device.objects.get_or_create(uuid=serial_number[:12], defaults={"type": device_type[:40]})
-
         if user_auth_code is not None:
             users = User.objects.filter(auth_token=user_auth_code)
             if not users.exists():
                 raise APIException(detail='Пользователя с таким auth_token не существует')
             user = users.first()
             # user.devices.append(device)
+            device, _ = Device.objects.get_or_create(uuid=serial_number[:12], defaults={"type": device_type[:40]})
             user.devices.add(device)
             user.save()
+            # request fast-api-service/subscribe-mqtt?device_type=..&deviceSN=..
 
-            return HttpResponse(status=201)
+            return Response({'message': "Успешно добавлено устройство"}, status=status.HTTP_201_CREATED)
         else:
-            return HttpResponseRedirect(redirect_to='/login')
-
+            b64 = base64.b64encode(
+                (f'/devices/bind?deviceSN={serial_number}&deviceType={device_type}').encode('utf-8')
+            ).decode('utf-8')
+            return HttpResponseRedirect(
+                redirect_to=f'/login?bindUrl={b64}'
+            )

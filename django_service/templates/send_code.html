@@ -18,7 +18,7 @@
         <form action="{% url 'get_token' %}" method="post" id="PhoneCode">
             {% csrf_token %}
             {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Получить токен</button>
+            <button type="submit" class="btn btn-primary">Отправить код</button>
         </form>
     </div>
 

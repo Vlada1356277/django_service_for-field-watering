@@ -6,8 +6,8 @@ from django.db import models
 class User(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=40)
-    # поменять тип?
-    phone = models.CharField(max_length=12, unique=True)
+    # phone = models.CharField(max_length=12, unique=True)
+    esiaId = models.CharField(max_length=40, null=False, default='')
     auth_token = models.UUIDField(
         default=uuid.uuid4, verbose_name='Токен авторизации', auto_created=True, null=False, blank=False
     )

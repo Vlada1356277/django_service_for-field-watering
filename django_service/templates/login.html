@@ -12,8 +12,11 @@
 <body>
     <div class="container mt-5">
         <h2>Введите номер телефона и способ связи</h2>
+        <!-- указываю URL для обработки данных -->
         <form action="{% url 'login' %}" method="post" id="PhoneChannelForm">
+            <!-- CSRF-токен предотвращает атаки типа "межсайтовое подделывание запроса" -->
             {% csrf_token %}
+            <!-- выводит поля формы в формате абзацев (p-элементов) -->
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Получить код</button>
         </form>

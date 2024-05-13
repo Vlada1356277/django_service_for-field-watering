@@ -9,7 +9,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from bonds.views import *
-from autho.views import AuthToken, login
+from autho.views import AuthToken, Login
 
 # from drf_yasg import openapi
 schema_view = get_schema_view(
@@ -23,19 +23,20 @@ schema_view = get_schema_view(
 )
 
 router = routers.SimpleRouter()
-router.register(r'devices', BondsAPIView)
+router.register(r'devices', BondsAPIView, basename='devices')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('devices/bind', BindDeviceView.as_view()),
+    path('devices/bind', BindDeviceView.as_view(), name='devices scan'),
+    path('devices/add', BondsAPIView.as_view({'get': 'add_device'}), name='add_device'),
     # path('devices/', BondsAPIView.as_view()),
     # path('devices/<int:pk>/', BondsUpdate.as_view()),
-    path('login/', login.as_view(), name='login'),
+    path('login/', Login.as_view(), name='login'),
     # path('auth-send-code/', AuthCode.as_view()),
-    path('auth-get-token/', AuthToken.as_view(), name='get_token'),
+    path('send-code/', AuthToken.as_view(), name='send-code'),
 
     path('admin/', admin.site.urls),
-    path('token-verify/', TokenVerifyView.as_view(), name='token_verify'),
+    # path('token-verify/', TokenVerifyView.as_view(), name='token_verify'),
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
