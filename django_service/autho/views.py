@@ -6,10 +6,12 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import jwt
+from django.contrib.auth import login
+
 
 from .forms import PhoneChannelForm, PhoneCodeForm
 
-from bonds.models import User
+from bonds.models import Users
 import requests
 
 
@@ -75,11 +77,14 @@ class AuthToken(APIView):
                 except jwt.DecodeError:
                     return Response({'error': 'Invalid token'})
 
-            user, _ = User.objects.get_or_create(
+            # ORM method tries to extract an object from the database based on the provided parameters, returns a tuple (object, bool)
+            user, _ = Users.objects.get_or_create(
                 # phone=decoded_token["phoneNumber"],
                 esiaId=decoded_token["esiaId"],
                 defaults={"name": decoded_token["firstName"] + ' ' + decoded_token["lastName"]}
             )
+            # user.generate_token()
+            login(request, user)
 
             if bind_url is not None and bind_url.strip() != '':
                 bind_url_decoded = base64.b64decode(bind_url.encode('utf-8')).decode('utf-8')

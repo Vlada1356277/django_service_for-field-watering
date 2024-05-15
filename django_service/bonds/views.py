@@ -1,32 +1,39 @@
 import base64
 
-import requests
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from rest_framework import generics, status, viewsets, mixins
+from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.exceptions import APIException
 
-from .models import Device, User
+from .models import Device, Users
 from .serializers import DeviceSerializer
 
 
-#
+
 class BondsAPIView(mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
                    mixins.DestroyModelMixin,
                    mixins.ListModelMixin,
                    # mixins.CreateModelMixin,
                    GenericViewSet):
-    queryset = Device.objects.all()
+    # queryset = Device.objects.all()
+
+    authentication_classes = [TokenAuthentication, SessionAuthentication]  # Add the authentication classes
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        user = self.request.user
+        queryset = user.devices.all()
+        return queryset
     serializer_class = DeviceSerializer
 
     def add_device(self, request):
         if request.method == 'GET':
             return render(request, 'add_device.html')
-    #          redirect на отсканеный QR?
 
     #  сделать открытым только для конкретного юзера\
 
@@ -39,7 +46,6 @@ class BondsAPIView(mixins.RetrieveModelMixin,
 
 
 class BindDeviceView(APIView):
-    # как здесь оказываются эти параматры?
     def get(self, request):
         serial_number = self.request.query_params.get('deviceSN')
         device_type = self.request.query_params.get('deviceType')
@@ -52,7 +58,7 @@ class BindDeviceView(APIView):
             raise APIException(detail='GET параметер device_type обязателен')
 
         if user_auth_code is not None:
-            users = User.objects.filter(auth_token=user_auth_code)
+            users = Users.objects.filter(auth_token=user_auth_code)
             if not users.exists():
                 raise APIException(detail='Пользователя с таким auth_token не существует')
             user = users.first()

@@ -15,7 +15,7 @@
             <h3 class="text-center mb-4">Код отправлен на ваш номер телефона</h3>
         </div>
         <h2>Введите номер телефона и код</h2>
-        <form action="{% url 'get_token' %}" method="post" id="PhoneCode">
+        <form action="{% url 'send-code' %}" method="post" id="PhoneCode">
             {% csrf_token %}
             {{ form.as_p }}
             <button type="submit" class="btn btn-primary">Отправить код</button>

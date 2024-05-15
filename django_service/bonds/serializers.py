@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Device, User
+from .models import Device, Users
 
 
 class DeviceSerializer(serializers.ModelSerializer):
