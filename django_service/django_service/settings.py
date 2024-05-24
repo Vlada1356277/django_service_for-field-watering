@@ -35,7 +35,7 @@ INSTALLED_APPS = [
 
     # Local Apps
     'bonds.apps.BondsConfig',
-    'autho.apps.AuthConfig'
+    'authorize.apps.AuthConfig'
 ]
 
 

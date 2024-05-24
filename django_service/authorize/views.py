@@ -8,7 +8,6 @@ from rest_framework.views import APIView
 import jwt
 from django.contrib.auth import login
 
-
 from .forms import PhoneChannelForm, PhoneCodeForm
 
 from bonds.models import Users
@@ -27,14 +26,13 @@ class Login(APIView):
             phone_number = form.cleaned_data['phone_number']
             channel = form.cleaned_data['channel']
             bind_url = form.cleaned_data['bind_url']
-            # Далее обработка отправки запроса
+
             response = requests.post(
                 'https://api-auth.bast-dev.ru/api/v1/auth/request-code/no-captcha',
                 json={"phoneNumber": phone_number, "sendingChannel": channel}
             )
             if response.status_code != 200:
                 return Response({'error': "internal error"}, status=status.HTTP_401_UNAUTHORIZED)
-            # return JsonResponse(status=200, data={'detail': "Please wait for auth code"})
             if bind_url is not None and bind_url.strip() != '':
                 return HttpResponseRedirect(redirect_to=f'/send-code?bindUrl={bind_url}')
             return HttpResponseRedirect(redirect_to='/send-code')
@@ -68,18 +66,27 @@ class AuthToken(APIView):
             response_data = response.json()
             jwt_token = response_data.get('jwt')
             registered = response_data.get('registered')
+            registation_token = response_data.get('registrationToken')
+            print(registation_token)
+
+            requests.post(
+                f'https://api-auth.bast-dev.ru/api/v1/auth/r',
+                json={"phoneNumber": phone_number, "code": code}
+            )
 
             if not registered:
                 return Response({'error': 'You are not registered'})
             else:
                 try:
-                    decoded_token = jwt.decode(jwt_token, options={"verify_signature": False, "verify_exp": False})
+                    # decode возвращает payload в виде словаря Python
+                    # decoded_token = jwt.decode(jwt_token)
+                    # decoded_token = jwt.decode(jwt_token, options={"verify_signature": False, "verify_exp": False})
+                    decoded_token = jwt.decode(jwt_token, options={"verify_signature": False})
                 except jwt.DecodeError:
                     return Response({'error': 'Invalid token'})
 
             # ORM method tries to extract an object from the database based on the provided parameters, returns a tuple (object, bool)
-            user, _ = Users.objects.get_or_create(
-                # phone=decoded_token["phoneNumber"],
+            user, created = Users.objects.get_or_create(
                 esiaId=decoded_token["esiaId"],
                 defaults={"name": decoded_token["firstName"] + ' ' + decoded_token["lastName"]}
             )
@@ -88,9 +95,8 @@ class AuthToken(APIView):
 
             if bind_url is not None and bind_url.strip() != '':
                 bind_url_decoded = base64.b64decode(bind_url.encode('utf-8')).decode('utf-8')
-                a = user.auth_token
+                # a = user.auth_token
                 return HttpResponseRedirect(redirect_to=f'{bind_url_decoded}&authCode={user.auth_token}')
 
             # return Response({'auth_token': user.auth_token}, status=status.HTTP_200_OK)
             return HttpResponseRedirect(redirect_to='/devices')
-

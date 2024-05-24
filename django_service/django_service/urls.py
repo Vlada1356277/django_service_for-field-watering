@@ -9,7 +9,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from bonds.views import *
-from autho.views import AuthToken, Login
+from authorize.views import AuthToken, Login
 
 # from drf_yasg import openapi
 schema_view = get_schema_view(
