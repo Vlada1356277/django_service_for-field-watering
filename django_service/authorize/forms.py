@@ -1,5 +1,6 @@
 from django import forms
 
+
 class PhoneChannelForm(forms.Form):
     phone_number = forms.CharField(
         max_length=15,
@@ -15,10 +16,10 @@ class PhoneChannelForm(forms.Form):
         ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
-    bind_url = forms.CharField(
-        widget=forms.HiddenInput(),
-        required=False
-    )
+    # bind_url = forms.CharField(
+    #     widget=forms.HiddenInput(),
+    #     required=False
+    # )
 
 
 class PhoneCodeForm(forms.Form):
@@ -34,7 +35,7 @@ class PhoneCodeForm(forms.Form):
             attrs={'class': 'form-control', 'placeholder': 'Код'}
         )
     )
-    bind_url = forms.CharField(
-        widget=forms.HiddenInput(),
-        required=False
-    )
+    # bind_url = forms.CharField(
+    #     widget=forms.HiddenInput(),
+    #     required=False
+    # )

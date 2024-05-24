@@ -31,7 +31,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=40, unique=True)
     esiaId = models.CharField(max_length=40, null=False, default='')
     devices = models.ManyToManyField('Device', related_name='users')
-    # auth_code = models.OneToOneField(Token, on_delete=models.CASCADE, blank=True, null=True, related_name='user_auth_code')
     auth_code = models.CharField(max_length=40, default='')
 
     # потом установить, когда не нужна будет админка джанго уже:
@@ -101,7 +100,6 @@ class Device(models.Model):
     id = models.AutoField(primary_key=True)
     uuid = models.CharField(max_length=12)
     name = models.CharField(max_length=40)
-    type = models.CharField(max_length=40)
 
     def __str__(self):
         return self.name

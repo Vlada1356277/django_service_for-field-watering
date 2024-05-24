@@ -31,6 +31,8 @@
         <h1>Scan QR Codes</h1>
         <div id="qr-reader"></div>
         <div id="result" class="result"></div>
+        <input type="text" id="deviceName" placeholder="Enter device name">
+        <button id="submitBtn">Submit</button>
     </div>
 
     <script src="https://unpkg.com/html5-qrcode"></script>
@@ -43,20 +45,32 @@
             }
         }
 
-
-
         domReady(function () {
-            function onScanSuccess(qrCodeMessage) {
-                // Redirect to the scanned URL
-                window.location.href = qrCodeMessage;
-            }
+            const resultDiv = document.getElementById("result");
 
+            function onScanSuccess(qrCodeMessage) {
+                resultDiv.innerText = qrCodeMessage;
+            }
 
             const scanner = new Html5QrcodeScanner(
                 "qr-reader",
                 { fps: 10, qrbox: 250 }
             );
+
             scanner.render(onScanSuccess);
+
+            // Обработчик события для кнопки отправки
+            document.getElementById("submitBtn").addEventListener("click", function() {
+                const deviceId = resultDiv.innerText;
+                const deviceName = document.getElementById("deviceName").value;
+                // Проверяем, что имя устройства введено
+                if (!deviceName) {
+                    alert("Please enter device name");
+                    return;
+                }
+                // Отправляем данные на сервер в query параметрах
+                window.location.href = `/devices/bind?deviceId=${encodeURIComponent(deviceId)}&deviceName=${encodeURIComponent(deviceName)}`;
+            });
         });
     </script>
 </body>

@@ -16,8 +16,7 @@ import requests
 
 class Login(APIView):
     def get(self, request):
-        bind_url = request.query_params.get('bindUrl')
-        form = PhoneChannelForm(initial={'bind_url': bind_url if bind_url is not None else ''})
+        form = PhoneChannelForm()
         return render(request, 'login.html', {'form': form})
 
     def post(self, request):
@@ -25,7 +24,6 @@ class Login(APIView):
         if form.is_valid():
             phone_number = form.cleaned_data['phone_number']
             channel = form.cleaned_data['channel']
-            bind_url = form.cleaned_data['bind_url']
 
             response = requests.post(
                 'https://api-auth.bast-dev.ru/api/v1/auth/request-code/no-captcha',
@@ -33,8 +31,6 @@ class Login(APIView):
             )
             if response.status_code != 200:
                 return Response({'error': "internal error"}, status=status.HTTP_401_UNAUTHORIZED)
-            if bind_url is not None and bind_url.strip() != '':
-                return HttpResponseRedirect(redirect_to=f'/send-code?bindUrl={bind_url}')
             return HttpResponseRedirect(redirect_to='/send-code')
         else:
             return render(request, 'login.html', {'form': form})
@@ -43,18 +39,14 @@ class Login(APIView):
 # send code, receive jwt
 class AuthToken(APIView):
     def get(self, request):
-        bind_url = request.query_params.get('bindUrl')
-        # print('bind_url = ', bind_url)
-        form = PhoneCodeForm(initial={'bind_url': bind_url if bind_url is not None else ''})
+        form = PhoneCodeForm()
         return render(request, 'send_code.html', {'form': form})
 
     def post(self, request):
         form = PhoneCodeForm(request.POST)
         if form.is_valid():
-            # country_code = form.cleaned_data['country_code']
             phone_number = form.cleaned_data['phone_number']
             code = form.cleaned_data['code']
-            bind_url = form.cleaned_data['bind_url']
 
             response = requests.post(
                 'https://api-auth.bast-dev.ru/api/v1/auth/login',
@@ -66,8 +58,6 @@ class AuthToken(APIView):
             response_data = response.json()
             jwt_token = response_data.get('jwt')
             registered = response_data.get('registered')
-            registation_token = response_data.get('registrationToken')
-            print(registation_token)
 
             requests.post(
                 f'https://api-auth.bast-dev.ru/api/v1/auth/r',
@@ -80,7 +70,6 @@ class AuthToken(APIView):
                 try:
                     # decode возвращает payload в виде словаря Python
                     # decoded_token = jwt.decode(jwt_token)
-                    # decoded_token = jwt.decode(jwt_token, options={"verify_signature": False, "verify_exp": False})
                     decoded_token = jwt.decode(jwt_token, options={"verify_signature": False})
                 except jwt.DecodeError:
                     return Response({'error': 'Invalid token'})
@@ -90,13 +79,6 @@ class AuthToken(APIView):
                 esiaId=decoded_token["esiaId"],
                 defaults={"name": decoded_token["firstName"] + ' ' + decoded_token["lastName"]}
             )
-            # user.generate_token()
-            login(request, user)
+            # login(request, user)
 
-            if bind_url is not None and bind_url.strip() != '':
-                bind_url_decoded = base64.b64decode(bind_url.encode('utf-8')).decode('utf-8')
-                # a = user.auth_token
-                return HttpResponseRedirect(redirect_to=f'{bind_url_decoded}&authCode={user.auth_token}')
-
-            # return Response({'auth_token': user.auth_token}, status=status.HTTP_200_OK)
             return HttpResponseRedirect(redirect_to='/devices')
