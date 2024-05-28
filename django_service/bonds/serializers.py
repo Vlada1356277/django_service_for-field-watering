@@ -9,3 +9,7 @@ class DeviceSerializer(serializers.ModelSerializer):
         model = Device
         fields = ('uuid', 'name')
 
+class UsersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Users
+        fields = ['id', 'name', 'esiaId', 'devices', 'is_staff', 'last_login', 'is_active']

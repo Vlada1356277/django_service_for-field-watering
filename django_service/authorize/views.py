@@ -3,6 +3,8 @@ import base64
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 import jwt
@@ -30,7 +32,7 @@ class Login(APIView):
                 json={"phoneNumber": phone_number, "sendingChannel": channel}
             )
             if response.status_code != 200:
-                return Response({'error': "internal error"}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({'error': "internal error"})
             return HttpResponseRedirect(redirect_to='/send-code')
         else:
             return render(request, 'login.html', {'form': form})
@@ -38,11 +40,14 @@ class Login(APIView):
 
 # send code, receive jwt
 class AuthToken(APIView):
+    # authentication_classes = [BearerTokenAuthentication]
+    # permission_classes = [AllowAny]
     def get(self, request):
         form = PhoneCodeForm()
         return render(request, 'send_code.html', {'form': form})
 
     def post(self, request):
+        global token
         form = PhoneCodeForm(request.POST)
         if form.is_valid():
             phone_number = form.cleaned_data['phone_number']
@@ -79,6 +84,12 @@ class AuthToken(APIView):
                 esiaId=decoded_token["esiaId"],
                 defaults={"name": decoded_token["firstName"] + ' ' + decoded_token["lastName"]}
             )
-            # login(request, user)
+            # if user:
+            #     token, created = Token.objects.get_or_create(user=user)
+            # сессия
+            login(request, user)
 
+            # return Response({'message': 'user authenticated'})
+            # response = HttpResponseRedirect(redirect_to='/devices')
+            # response.set_cookie('auth_token', token.key, httponly=True, secure=True)
             return HttpResponseRedirect(redirect_to='/devices')

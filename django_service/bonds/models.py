@@ -31,7 +31,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=40, unique=True)
     esiaId = models.CharField(max_length=40, null=False, default='')
     devices = models.ManyToManyField('Device', related_name='users')
-    auth_code = models.CharField(max_length=40, default='')
+    # auth_code = models.CharField(max_length=40, default='')
 
     # потом установить, когда не нужна будет админка джанго уже:
     # password = None
@@ -44,16 +44,23 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
     objects = UserManager()
 
+    @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+    def create_auth_token(sender, instance=None, created=False, **kwargs):
+        if created:
+            Token.objects.create(user=instance)
+
     def __str__(self):
         return self.name
 
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
-    if created and not instance.auth_code:
-        token = Token.objects.create(user=instance)
-        instance.auth_code = token.key
-        instance.save()
+
+# @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+# def create_auth_token(sender, instance=None, created=False, **kwargs):
+#     if created and not instance.auth_code:
+#         token = Token.objects.create(user=instance)
+#         instance.auth_code = token.key
+#         instance.save()
+
 
 
 # class User(models.Model):

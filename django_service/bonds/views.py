@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from rest_framework import generics, status, viewsets, mixins
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
+from authorize.authentication import BearerTokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,7 +21,7 @@ class BondsAPIView(mixins.RetrieveModelMixin,
                    mixins.DestroyModelMixin,
                    mixins.ListModelMixin,
                    GenericViewSet):
-    authentication_classes = [TokenAuthentication, SessionAuthentication]
+    authentication_classes = [BearerTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
     serializer_class = DeviceSerializer
@@ -36,6 +37,8 @@ class BondsAPIView(mixins.RetrieveModelMixin,
 
 
 class BindDeviceView(APIView):
+    authentication_classes = [BearerTokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request):
         serial_number = self.request.query_params.get('deviceId')
         device_name = self.request.query_params.get('deviceName')
@@ -62,7 +65,7 @@ class BindDeviceView(APIView):
         if not user.devices.filter(id=device.id).exists():
             response = requests.post(
                 'http://127.0.0.1:8001/subscribe_mqtt',
-                json={"serial_number": serial_number}
+                json={"serial_number": serial_number, "name": device_name}
             )
 
             if response.status_code != 200 and response.status_code != 201:
@@ -74,7 +77,7 @@ class BindDeviceView(APIView):
             return Response({'message': "Успешно добавлено устройство " + f'{serial_number}'},
                             status=status.HTTP_201_CREATED)
 
-        return Response({'message': "Устройство уже связано с пользователем " + f'{serial_number}'},
+        return Response({'message': "Устройство " + f'{serial_number}' + "уже связано с пользователем " + f'{user}'},
                         status=status.HTTP_200_OK)
         # user = users.first()
         # device, _ = Device.objects.get_or_create(uuid=serial_number[:12], defaults={"type": device_type[:40]})
