@@ -1,8 +1,7 @@
-import base64
-
+import os
 import requests
-from django.shortcuts import render, redirect
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, HttpResponseNotFound
 from rest_framework import generics, status, viewsets, mixins
 from rest_framework.authentication import TokenAuthentication, SessionAuthentication
 from authorize.authentication import BearerTokenAuthentication
@@ -11,9 +10,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.exceptions import APIException
-
+from dotenv import load_dotenv, find_dotenv
 from .models import Device, Users
-from .serializers import DeviceSerializer
+from .serializers import DevicesSerializer
+
+
+load_dotenv(find_dotenv())
+
+service_url = os.getenv('MQTT_SERVICE_URL')
+
+def add_device(request):
+    if request.method == 'GET':
+        return render(request, 'add_device.html')
 
 
 class BondsAPIView(mixins.RetrieveModelMixin,
@@ -24,23 +32,61 @@ class BondsAPIView(mixins.RetrieveModelMixin,
     authentication_classes = [BearerTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
-    serializer_class = DeviceSerializer
+    serializer_class = DevicesSerializer
 
     def get_queryset(self):
+        # user = self.request.user
+        # # queryset = user.devices.all()
+        # # return queryset
+        # return Device.objects.filter(users=user)
         user = self.request.user
-        queryset = user.devices.all()
-        return queryset
+        devices = Device.objects.filter(users=user)
 
-    def add_device(self, request):
-        if request.method == 'GET':
-            return render(request, 'add_device.html')
+        # Объединяем данные из FastAPI с устройствами
+        enriched_devices = []
+        for device in devices:
+            fastapi_url = f"{service_url}devices/{device.serial_number}"
+            response = requests.get(fastapi_url)
+
+            if response.status_code == 200:
+                fastapi_data = response.json()
+                device_data = {
+                    "serial_number": device.serial_number,
+                    "name": device.name,
+                    "temperature": fastapi_data.get("temperature", None),
+                    "rssi": fastapi_data.get("rssi", None)
+                }
+            else:
+                device_data = {
+                    "serial_number": device.serial_number,
+                    "name": device.name,
+                    "temperature": None,
+                    "rssi": None
+                }
+
+            enriched_devices.append(device_data)
+
+        return enriched_devices
+
+    # def retrieve(self, request, *args, **kwargs):
+    #     serial_number = kwargs.get('pk')
+    #     device = get_object_or_404(self.get_queryset(), serial_number=serial_number)
+    #
+    #     fastapi_url = f"{service_url}devices/{serial_number}"
+    #
+    #     response = requests.get(fastapi_url)
+    #
+    #     if response.status_code == 200:
+    #         return JsonResponse(response.json())
+    #     else:
+    #         return HttpResponseNotFound("Device not found")
 
 
 class BindDeviceView(APIView):
     authentication_classes = [BearerTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     def get(self, request):
-        serial_number = self.request.query_params.get('deviceId')
+        serial_number = self.request.query_params.get('deviceSN')
         device_name = self.request.query_params.get('deviceName')
         # user_auth_code = self.request.query_params.get('authCode')
 
@@ -59,12 +105,12 @@ class BindDeviceView(APIView):
         #     raise APIException(detail='Пользователя с таким auth_token не существует')
         # user = users.first()
         device, created = Device.objects.get_or_create(
-            uuid=serial_number[:12],
+            serial_number=serial_number[:12],
             defaults={"name": device_name[:40]})
 
-        if not user.devices.filter(id=device.id).exists():
+        if not user.devices.filter(serial_number=device.serial_number).exists():
             response = requests.post(
-                'http://127.0.0.1:8001/subscribe_mqtt',
+                service_url + "subscribe_mqtt",
                 json={"serial_number": serial_number, "name": device_name}
             )
 
@@ -79,25 +125,3 @@ class BindDeviceView(APIView):
 
         return Response({'message': "Устройство " + f'{serial_number}' + "уже связано с пользователем " + f'{user}'},
                         status=status.HTTP_200_OK)
-        # user = users.first()
-        # device, _ = Device.objects.get_or_create(uuid=serial_number[:12], defaults={"type": device_type[:40]})
-        # user.devices.add(device)
-        # user.save()
-        # # поменять localhost
-        #
-        # response = requests.post(
-        #     'http://127.0.0.1:8001/subscribe_mqtt',
-        #     json={"device_type": device_type, "serial_number": serial_number}
-        # )
-        #
-        # if response.status_code != 200 and response.status_code != 201:
-        #     return Response({'error': "internal error"})
-        #
-        # return Response({'message': "Успешно добавлено устройство " + f'{serial_number}'}, status=status.HTTP_201_CREATED)
-    # else:
-    #     b64 = base64.b64encode(
-    #         (f'/devices/bind?deviceSN={serial_number}&deviceType={device_type}').encode('utf-8')
-    #     ).decode('utf-8')
-    #     return HttpResponseRedirect(
-    #         redirect_to=f'/login?bindUrl={b64}'
-    #     )

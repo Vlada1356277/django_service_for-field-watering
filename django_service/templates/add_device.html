@@ -61,7 +61,7 @@
 
             // Обработчик события для кнопки отправки
             document.getElementById("submitBtn").addEventListener("click", function() {
-                const deviceId = resultDiv.innerText;
+                const deviceSN = resultDiv.innerText;
                 const deviceName = document.getElementById("deviceName").value;
                 // Проверяем, что имя устройства введено
                 if (!deviceName) {
@@ -69,7 +69,7 @@
                     return;
                 }
                 // Отправляем данные на сервер в query параметрах
-                window.location.href = `/devices/bind?deviceId=${encodeURIComponent(deviceId)}&deviceName=${encodeURIComponent(deviceName)}`;
+                window.location.href = `/devices/bind?deviceSN=${encodeURIComponent(deviceSN)}&deviceName=${encodeURIComponent(deviceName)}`;
             });
         });
     </script>
