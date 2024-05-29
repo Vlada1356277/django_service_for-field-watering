@@ -1,23 +1,23 @@
 import os
 import requests
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, HttpResponseNotFound
-from rest_framework import generics, status, viewsets, mixins
-from rest_framework.authentication import TokenAuthentication, SessionAuthentication
-from authorize.authentication import BearerTokenAuthentication
+from django.shortcuts import render
+from dotenv import load_dotenv, find_dotenv
+from rest_framework import status, mixins
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.exceptions import APIException
-from dotenv import load_dotenv, find_dotenv
-from .models import Device, Users
-from .serializers import DevicesSerializer
 
+from authorize.authentication import BearerTokenAuthentication
+from .models import Device
+from .serializers import DevicesSerializer
 
 load_dotenv(find_dotenv())
 
 service_url = os.getenv('MQTT_SERVICE_URL')
+
 
 def add_device(request):
     if request.method == 'GET':
@@ -45,7 +45,7 @@ class BondsAPIView(mixins.RetrieveModelMixin,
         # Объединяем данные из FastAPI с устройствами
         enriched_devices = []
         for device in devices:
-            fastapi_url = f"{service_url}devices/{device.serial_number}"
+            fastapi_url = f"{service_url}{device.serial_number}"
             response = requests.get(fastapi_url)
 
             if response.status_code == 200:
@@ -72,7 +72,7 @@ class BondsAPIView(mixins.RetrieveModelMixin,
     #     serial_number = kwargs.get('pk')
     #     device = get_object_or_404(self.get_queryset(), serial_number=serial_number)
     #
-    #     fastapi_url = f"{service_url}devices/{serial_number}"
+    #     fastapi_url = f"{service_url}{serial_number}"
     #
     #     response = requests.get(fastapi_url)
     #
@@ -85,6 +85,7 @@ class BondsAPIView(mixins.RetrieveModelMixin,
 class BindDeviceView(APIView):
     authentication_classes = [BearerTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
         serial_number = self.request.query_params.get('deviceSN')
         device_name = self.request.query_params.get('deviceName')
@@ -115,7 +116,8 @@ class BindDeviceView(APIView):
             )
 
             if response.status_code != 200 and response.status_code != 201:
-                return Response({'error': "запрос на /subscribe_mqtt не выполнен"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({'error': "запрос на /subscribe_mqtt не выполнен"},
+                                status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             user.devices.add(device)
             user.save()
