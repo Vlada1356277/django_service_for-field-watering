@@ -8,8 +8,13 @@ from rest_framework_simplejwt.views import TokenVerifyView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from bonds.views import *
-from authorize.views import AuthToken, Login
+from authorize.views import Login, AuthToken
+from bonds.views import BondsAPIView, BindDeviceView
+
+#
+# from .authorize.views import AuthToken, Login
+# from .bonds.views import *
+
 
 # from drf_yasg import openapi
 schema_view = get_schema_view(
@@ -29,10 +34,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('devices/bind', BindDeviceView.as_view(), name='devices scan'),
     path('devices/add', BondsAPIView.as_view({'get': 'add_device'}), name='add_device'),
-    # path('devices/', BondsAPIView.as_view()),
-    # path('devices/<int:pk>/', BondsUpdate.as_view()),
     path('login/', Login.as_view(), name='login'),
-    # path('auth-send-code/', AuthCode.as_view()),
     path('send-code/', AuthToken.as_view(), name='send-code'),
 
     path('admin/', admin.site.urls),

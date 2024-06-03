@@ -19,11 +19,6 @@ load_dotenv(find_dotenv())
 service_url = os.getenv('MQTT_SERVICE_URL')
 
 
-def add_device(request):
-    if request.method == 'GET':
-        return render(request, 'add_device.html')
-
-
 class BondsAPIView(mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
                    mixins.DestroyModelMixin,
@@ -68,6 +63,10 @@ class BondsAPIView(mixins.RetrieveModelMixin,
 
         return enriched_devices
 
+    def add_device(self, request):
+        if request.method == 'GET':
+            return render(request, 'add_device.html')
+
     # def retrieve(self, request, *args, **kwargs):
     #     serial_number = kwargs.get('pk')
     #     device = get_object_or_404(self.get_queryset(), serial_number=serial_number)
@@ -86,6 +85,7 @@ class BindDeviceView(APIView):
     authentication_classes = [BearerTokenAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
 
+    # обрабатывает запрос после qr, подписка на mqtt
     def get(self, request):
         serial_number = self.request.query_params.get('deviceSN')
         device_name = self.request.query_params.get('deviceName')
