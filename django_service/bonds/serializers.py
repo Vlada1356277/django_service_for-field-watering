@@ -5,9 +5,11 @@ from .models import Device, Users
 
 class DeviceSerializer(serializers.ModelSerializer):
     serial_number = serializers.UUIDField(read_only=True)
+
     class Meta:
         model = Device
         fields = ('serial_number', 'name')
+
 
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
