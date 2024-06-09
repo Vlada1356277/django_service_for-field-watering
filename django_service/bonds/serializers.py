@@ -4,17 +4,14 @@ from .models import Device, Users
 
 
 class DeviceSerializer(serializers.ModelSerializer):
-    serial_number = serializers.UUIDField(read_only=True)
-
     class Meta:
         model = Device
-        fields = ('serial_number', 'name')
-
+        fields = '__all__'
 
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
-        fields = ['id', 'name', 'esiaId', 'devices', 'is_staff', 'last_login', 'is_active']
+        fields = ['id', 'username', 'esiaId', 'devices', 'is_staff', 'last_login', 'is_active']
 
 
 class DevicesSerializer(serializers.Serializer):

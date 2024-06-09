@@ -8,7 +8,7 @@ from dotenv import load_dotenv, find_dotenv
 from rest_framework import status, mixins
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import APIException
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
@@ -16,7 +16,22 @@ from rest_framework.viewsets import GenericViewSet
 from authorize.authentication import BearerTokenAuthentication
 from django_service.settings import MQTT_SERVICE_URL
 from .models import Device
-from .serializers import DevicesSerializer
+from .serializers import DevicesSerializer, DeviceSerializer
+
+
+class CanViewAllDevices(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_superuser
+
+
+class AllDevicesAPIView(APIView):
+    permission_classes = [IsAuthenticated, CanViewAllDevices]
+
+    def get(self, request):
+        devices = Device.objects.all()
+        serializer = DeviceSerializer(devices, many=True)
+        return Response({'devices': serializer.data})
+
 
 class BondsAPIView(mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,

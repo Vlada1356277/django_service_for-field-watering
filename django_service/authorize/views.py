@@ -78,7 +78,7 @@ class AuthToken(APIView):
             # ORM method tries to extract an object from the database based on the provided parameters, returns a tuple (object, bool)
             user, created = Users.objects.get_or_create(
                 esiaId=decoded_token["esiaId"],
-                defaults={"name": decoded_token["firstName"] + ' ' + decoded_token["lastName"]}
+                defaults={"username": decoded_token["firstName"] + ' ' + decoded_token["lastName"]}
             )
             # if user:
             #     token, created = Token.objects.get_or_create(user=user)

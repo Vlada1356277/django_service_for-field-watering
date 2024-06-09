@@ -10,7 +10,7 @@ from bonds.managers import UserManager
 
 class Users(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=40, unique=True)
+    username = models.CharField(max_length=40, unique=True)
     esiaId = models.CharField(max_length=40, null=False, default='')
     devices = models.ManyToManyField('Device', related_name='users')
     # auth_code = models.CharField(max_length=40, default='')
@@ -21,7 +21,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
     last_login = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
-    USERNAME_FIELD = "name"
+    USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
 
     objects = UserManager()
@@ -32,7 +32,7 @@ class Users(AbstractBaseUser, PermissionsMixin):
             Token.objects.create(user=instance)
 
     def __str__(self):
-        return self.name
+        return self.username
 
 
 class Device(models.Model):

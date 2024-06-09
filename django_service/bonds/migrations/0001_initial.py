@@ -2,6 +2,30 @@
 
 from django.db import migrations, models
 
+# def create_permissions_and_groups(apps, schema_editor):
+#     Permission = apps.get_model('auth', 'Permission')
+#     Group = apps.get_model('auth', 'Group')
+#     ContentType = apps.get_model('contenttypes', 'ContentType')
+#     Users = apps.get_model('bonds', 'Users')
+#
+#     # Получаем content_type для модели Device
+#     content_type = ContentType.objects.get_for_model(Users)
+#
+#     # Создаем право доступа
+#     permission = Permission.objects.create(
+#         codename='view_all_devices',
+#         name='Can view all devices',
+#         content_type=content_type,
+#     )
+#
+#     # Создаем группу и добавляем в нее право доступа
+#     group, created = Group.objects.get_or_create(name='DeviceViewers')
+#     group.permissions.add(permission)
+#
+#     # Назначаем право доступа всем суперпользователям
+#     for user in Users.objects.filter(is_superuser=True):
+#         user.user_permissions.add(permission)
+#
 
 class Migration(migrations.Migration):
 
@@ -12,6 +36,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+
         migrations.CreateModel(
             name='Device',
             fields=[

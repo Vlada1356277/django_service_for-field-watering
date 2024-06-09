@@ -3,7 +3,7 @@ from django.urls import include, path
 from rest_framework import permissions, routers
 
 from authorize.views import Login, AuthToken
-from bonds.views import BondsAPIView, BindDeviceView, DeviceDetailsView
+from bonds.views import BondsAPIView, BindDeviceView, DeviceDetailsView, AllDevicesAPIView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
@@ -28,6 +28,7 @@ urlpatterns = [
     path('login/', Login.as_view(), name='login'),
     path('send-code/', AuthToken.as_view(), name='send-code'),
     path('device/<str:device_sn>/', DeviceDetailsView.as_view(), name='get logger devices'),
+    path('devices/all', AllDevicesAPIView.as_view(), name='get all by admin'),
 
     path('admin/', admin.site.urls),
 
