@@ -1,5 +1,8 @@
 import os
+from urllib.parse import urljoin
+
 import requests
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from dotenv import load_dotenv, find_dotenv
 from rest_framework import status, mixins
@@ -127,3 +130,11 @@ class BindDeviceView(APIView):
 
         return Response({'message': "Устройство " + f'{serial_number}' + "уже связано с пользователем " + f'{user}'},
                         status=status.HTTP_200_OK)
+
+class DeviceDetailsView(APIView):
+    authentication_classes = [BearerTokenAuthentication, SessionAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, device_sn: str):
+        print(urljoin(MQTT_SERVICE_URL, f'devices/{device_sn}'))
+        return HttpResponseRedirect(redirect_to=urljoin(MQTT_SERVICE_URL, f'devices/{device_sn}'))
