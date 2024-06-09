@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -138,3 +139,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
+
+MQTT_SERVICE_URL = os.getenv('MQTT_SERVICE_URL')

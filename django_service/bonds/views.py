@@ -14,13 +14,9 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 
 from authorize.authentication import BearerTokenAuthentication
+from django_service.settings import MQTT_SERVICE_URL
 from .models import Device
 from .serializers import DevicesSerializer
-
-load_dotenv(find_dotenv())
-
-service_url = os.getenv('MQTT_SERVICE_URL')
-
 
 class BondsAPIView(mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
@@ -43,7 +39,7 @@ class BondsAPIView(mixins.RetrieveModelMixin,
         # Объединяем данные из FastAPI с устройствами
         enriched_devices = []
         for device in devices:
-            fastapi_url = f"{service_url}{device.serial_number}"
+            fastapi_url = f"{MQTT_SERVICE_URL}{device.serial_number}"
             response = requests.get(fastapi_url)
 
             if response.status_code == 200:
@@ -114,7 +110,7 @@ class BindDeviceView(APIView):
 
         if not user.devices.filter(serial_number=device.serial_number).exists():
             response = requests.post(
-                service_url + "subscribe_mqtt",
+                MQTT_SERVICE_URL + "subscribe_mqtt",
                 json={"serial_number": serial_number, "name": device_name}
             )
 
@@ -130,6 +126,7 @@ class BindDeviceView(APIView):
 
         return Response({'message': "Устройство " + f'{serial_number}' + "уже связано с пользователем " + f'{user}'},
                         status=status.HTTP_200_OK)
+
 
 class DeviceDetailsView(APIView):
     authentication_classes = [BearerTokenAuthentication, SessionAuthentication]
