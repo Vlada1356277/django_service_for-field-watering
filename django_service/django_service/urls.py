@@ -23,12 +23,14 @@ router.register(r'devices', BondsAPIView, basename='devices')
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('devices/bind', BindDeviceView.as_view(), name='devices scan'),
-    path('devices/add', BondsAPIView.as_view({'get': 'add_device'}), name='add_device'),
     path('login/', Login.as_view(), name='login'),
     path('send-code/', AuthToken.as_view(), name='send-code'),
+    path('devices/bind', BindDeviceView.as_view(), name='devices scan'),
+    path('devices/add', BondsAPIView.as_view({'get': 'add_device'}), name='add_device'),
     path('device/<str:device_sn>/', DeviceDetailsView.as_view(), name='get logger devices'),
     path('devices/all', AllDevicesAPIView.as_view(), name='get all by admin'),
+    # path('devices/<str:pk>/', BondsAPIView.as_view({'delete': 'destroy'}), name='delete_device'),
+    # path('devices/<str:pk>/', BondsAPIView.as_view({'put': 'update'}), name='update_device'),
 
     path('admin/', admin.site.urls),
 

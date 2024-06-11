@@ -8,6 +8,7 @@ class DeviceSerializer(serializers.ModelSerializer):
         model = Device
         fields = '__all__'
 
+
 class UsersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Users
@@ -15,7 +16,15 @@ class UsersSerializer(serializers.ModelSerializer):
 
 
 class DevicesSerializer(serializers.Serializer):
-    serial_number = serializers.CharField(max_length=100)
+    serial_number = serializers.CharField(max_length=100, allow_null=True)
     name = serializers.CharField(max_length=100)
     temperature = serializers.CharField(required=False, allow_null=True)
     rssi = serializers.CharField(required=False, allow_null=True)
+
+
+class UserSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=40)
+    esiaId = serializers.CharField(max_length=40, allow_null=False, default='')
+    is_staff = serializers.BooleanField(default=False)
+    last_login = serializers.DateTimeField()
+    is_active = serializers.BooleanField(default=True)

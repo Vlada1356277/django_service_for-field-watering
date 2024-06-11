@@ -36,8 +36,6 @@ class Login(APIView):
 
 # send code, receive jwt
 class AuthToken(APIView):
-    # authentication_classes = [BearerTokenAuthentication]
-    # permission_classes = [AllowAny]
     def get(self, request):
         form = PhoneCodeForm()
         return render(request, 'send_code.html', {'form': form})
@@ -60,11 +58,6 @@ class AuthToken(APIView):
             jwt_token = response_data.get('jwt')
             registered = response_data.get('registered')
 
-            requests.post(
-                f'https://api-auth.bast-dev.ru/api/v1/auth/r',
-                json={"phoneNumber": phone_number, "code": code}
-            )
-
             if not registered:
                 return Response({'error': 'You are not registered'})
             else:
@@ -75,17 +68,14 @@ class AuthToken(APIView):
                 except jwt.DecodeError:
                     return Response({'error': 'Invalid token'})
 
-            # ORM method tries to extract an object from the database based on the provided parameters, returns a tuple (object, bool)
+            # ORM method tries to extract an object from the database based on the provided parameters,
+            # returns a tuple (object, bool)
             user, created = Users.objects.get_or_create(
                 esiaId=decoded_token["esiaId"],
                 defaults={"username": decoded_token["firstName"] + ' ' + decoded_token["lastName"]}
             )
-            # if user:
-            #     token, created = Token.objects.get_or_create(user=user)
+
             # сессия
             login(request, user)
 
-            # return Response({'message': 'user authenticated'})
-            # response = HttpResponseRedirect(redirect_to='/devices')
-            # response.set_cookie('auth_token', token.key, httponly=True, secure=True)
             return HttpResponseRedirect(redirect_to='/devices')

@@ -13,7 +13,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=40, unique=True)
     esiaId = models.CharField(max_length=40, null=False, default='')
     devices = models.ManyToManyField('Device', related_name='users')
-    # auth_code = models.CharField(max_length=40, default='')
 
     # потом установить, когда не нужна будет админка джанго уже:
     # password = None
@@ -36,7 +35,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
 
 
 class Device(models.Model):
-    # id = models.AutoField(primary_key=True)
     serial_number = models.CharField(primary_key=True, max_length=12)
     name = models.CharField(max_length=40)
 

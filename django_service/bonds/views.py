@@ -1,10 +1,9 @@
-import os
 from urllib.parse import urljoin
 
 import requests
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from dotenv import load_dotenv, find_dotenv
 from rest_framework import status, mixins
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.exceptions import APIException
@@ -25,7 +24,7 @@ class CanViewAllDevices(BasePermission):
 
 
 class AllDevicesAPIView(APIView):
-    permission_classes = [IsAuthenticated, CanViewAllDevices]
+    permission_classes = [CanViewAllDevices]
 
     def get(self, request):
         devices = Device.objects.all()
@@ -33,6 +32,7 @@ class AllDevicesAPIView(APIView):
         return Response({'devices': serializer.data})
 
 
+# миксины предоставляют базовую функциональность для работы с наборами данных (querysets)
 class BondsAPIView(mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin,
                    mixins.DestroyModelMixin,
@@ -44,10 +44,6 @@ class BondsAPIView(mixins.RetrieveModelMixin,
     serializer_class = DevicesSerializer
 
     def get_queryset(self):
-        # user = self.request.user
-        # # queryset = user.devices.all()
-        # # return queryset
-        # return Device.objects.filter(users=user)
         user = self.request.user
         devices = Device.objects.filter(users=user)
 
@@ -55,6 +51,7 @@ class BondsAPIView(mixins.RetrieveModelMixin,
         enriched_devices = []
         for device in devices:
             fastapi_url = f"{MQTT_SERVICE_URL}{device.serial_number}"
+            redirect_url = urljoin(MQTT_SERVICE_URL, f'devices/{device.serial_number}')
             response = requests.get(fastapi_url)
 
             if response.status_code == 200:
@@ -63,36 +60,69 @@ class BondsAPIView(mixins.RetrieveModelMixin,
                     "serial_number": device.serial_number,
                     "name": device.name,
                     "temperature": fastapi_data.get("temperature", None),
-                    "rssi": fastapi_data.get("rssi", None)
+                    "rssi": fastapi_data.get("rssi", None),
+                    "redirect_url": redirect_url
                 }
             else:
                 device_data = {
                     "serial_number": device.serial_number,
                     "name": device.name,
                     "temperature": None,
-                    "rssi": None
+                    "rssi": None,
+                    "redirect_url": redirect_url
                 }
 
             enriched_devices.append(device_data)
 
         return enriched_devices
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        user = self.request.user
+        return render(request, 'devices.html', {'devices': queryset, 'user': user})
+
     def add_device(self, request):
         if request.method == 'GET':
             return render(request, 'add_device.html')
 
-    # def retrieve(self, request, *args, **kwargs):
-    #     serial_number = kwargs.get('pk')
-    #     device = get_object_or_404(self.get_queryset(), serial_number=serial_number)
-    #
-    #     fastapi_url = f"{service_url}{serial_number}"
-    #
-    #     response = requests.get(fastapi_url)
-    #
-    #     if response.status_code == 200:
-    #         return JsonResponse(response.json())
-    #     else:
-    #         return HttpResponseNotFound("Device not found")
+    def destroy(self, request, *args, **kwargs):
+        if request.method == 'DELETE':
+            # device = self.get_object()
+            # self.perform_destroy(device)
+            # device = Device.objects.get(serial_number=pk)
+            serial_number = kwargs.get('pk')
+            try:
+                device = Device.objects.get(serial_number=serial_number)
+            except ObjectDoesNotExist:
+                return Response({"error": "Device not found"}, status=status.HTTP_404_NOT_FOUND)
+            # device = self.request.
+
+            response = requests.delete(
+                MQTT_SERVICE_URL + "delete_device",
+                json={"serial_number": serial_number}
+            )
+
+            if response.status_code == 200:
+                device.delete()
+                return Response({"message": f"Deleted device {device.serial_number}"}, status=response.status_code)
+            else:
+                return Response({"error": "Failed to delete from other service"}, status=response.status_code)
+
+
+    def update(self, request, *args, **kwargs):
+        serial_number = kwargs.get('pk')
+        try:
+            device = Device.objects.get(serial_number=serial_number)
+        except ObjectDoesNotExist:
+            return Response({"error": "Device not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # partial = kwargs.pop('partial', False)
+        name = request.data.get('name')
+
+        device.name = name
+        device.save()
+
+        return Response({"message": f"Updated device {device.serial_number}"})
 
 
 class BindDeviceView(APIView):
@@ -103,7 +133,6 @@ class BindDeviceView(APIView):
     def get(self, request):
         serial_number = self.request.query_params.get('deviceSN')
         device_name = self.request.query_params.get('deviceName')
-        # user_auth_code = self.request.query_params.get('authCode')
 
         if serial_number is None:
             raise APIException(detail='GET параметер serial_number обязателен')
@@ -111,14 +140,10 @@ class BindDeviceView(APIView):
         if device_name is None:
             raise APIException(detail='GET параметер device_name обязателен')
 
-        # users = Users.objects.filter(auth_token=user_auth_code)
         user = request.user
         if not user.is_authenticated:
             raise APIException(detail='Пользователь не аутентифицирован')
 
-        # if not users.exists():
-        #     raise APIException(detail='Пользователя с таким auth_token не существует')
-        # user = users.first()
         device, created = Device.objects.get_or_create(
             serial_number=serial_number[:12],
             defaults={"name": device_name[:40]})
@@ -139,7 +164,7 @@ class BindDeviceView(APIView):
             return Response({'message': "Успешно добавлено устройство " + f'{serial_number}'},
                             status=status.HTTP_201_CREATED)
 
-        return Response({'message': "Устройство " + f'{serial_number}' + "уже связано с пользователем " + f'{user}'},
+        return Response({'message': "Устройство " + f'{serial_number}' + " уже связано с пользователем " + f'{user}'},
                         status=status.HTTP_200_OK)
 
 
