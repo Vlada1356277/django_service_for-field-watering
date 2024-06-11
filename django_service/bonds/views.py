@@ -86,9 +86,6 @@ class BondsAPIView(mixins.RetrieveModelMixin,
 
     def destroy(self, request, *args, **kwargs):
         if request.method == 'DELETE':
-            # device = self.get_object()
-            # self.perform_destroy(device)
-            # device = Device.objects.get(serial_number=pk)
             serial_number = kwargs.get('pk')
             try:
                 device = Device.objects.get(serial_number=serial_number)
@@ -114,7 +111,6 @@ class BondsAPIView(mixins.RetrieveModelMixin,
         except ObjectDoesNotExist:
             return Response({"error": "Device not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # partial = kwargs.pop('partial', False)
         name = request.data.get('name')
 
         device.name = name

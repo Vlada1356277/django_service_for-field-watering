@@ -16,10 +16,6 @@ class PhoneChannelForm(forms.Form):
         ],
         widget=forms.Select(attrs={'class': 'form-control'})
     )
-    # bind_url = forms.CharField(
-    #     widget=forms.HiddenInput(),
-    #     required=False
-    # )
 
 
 class PhoneCodeForm(forms.Form):
@@ -35,7 +31,3 @@ class PhoneCodeForm(forms.Form):
             attrs={'class': 'form-control', 'placeholder': 'Код'}
         )
     )
-    # bind_url = forms.CharField(
-    #     widget=forms.HiddenInput(),
-    #     required=False
-    # )

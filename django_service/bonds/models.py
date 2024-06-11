@@ -14,7 +14,6 @@ class Users(AbstractBaseUser, PermissionsMixin):
     esiaId = models.CharField(max_length=40, null=False, default='')
     devices = models.ManyToManyField('Device', related_name='users')
 
-    # потом установить, когда не нужна будет админка джанго уже:
     # password = None
     is_staff = models.BooleanField(default=False)
     last_login = models.DateTimeField(auto_now_add=True)
