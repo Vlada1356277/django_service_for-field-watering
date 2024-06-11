@@ -1,5 +1,4 @@
 from urllib.parse import urljoin
-
 import requests
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect
@@ -108,7 +107,6 @@ class BondsAPIView(mixins.RetrieveModelMixin,
             else:
                 return Response({"error": "Failed to delete from other service"}, status=response.status_code)
 
-
     def update(self, request, *args, **kwargs):
         serial_number = kwargs.get('pk')
         try:
@@ -161,8 +159,9 @@ class BindDeviceView(APIView):
             user.devices.add(device)
             user.save()
 
-            return Response({'message': "Успешно добавлено устройство " + f'{serial_number}'},
-                            status=status.HTTP_201_CREATED)
+            # return Response({'message': "Успешно добавлено устройство " + f'{serial_number}'},
+            #                 status=status.HTTP_201_CREATED
+            return HttpResponseRedirect(redirect_to='/devices')
 
         return Response({'message': "Устройство " + f'{serial_number}' + " уже связано с пользователем " + f'{user}'},
                         status=status.HTTP_200_OK)
